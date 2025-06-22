@@ -1,28 +1,38 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+  const leftValue = useState(new Animated.Value(0))[0];
+  const moveBall = () => {
+    Animated.timing(leftValue, {
+      toValue: 1000,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
+  };
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: 'white',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Animated.View
+        style={{
+          width: 100,
+          height: 100,
+          marginLeft: leftValue,
+          borderRadius: 100 / 2,
+          backgroundColor: 'red',
+        }}
+      />
+      <TouchableOpacity onPress={moveBall}>
+        <Text>Press to move</Text>
+      </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
