@@ -1,46 +1,61 @@
 import { useRef, useState } from 'react';
-import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  PanResponder,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 function App() {
-  const opacity = useState(new Animated.Value(0))[0];
-  const fadeIn = () => {
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  };
-  const fadeOut = () => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  };
+  const pan = useState(new Animated.ValueXY())[0];
+
+  const panResponder = useState(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        pan.setOffset({
+          x: pan.x._value,
+          y: pan.y._value,
+        });
+      },
+      onPanResponderMove: (_, gesture) => {
+        pan.x.setValue(gesture.dx);
+        pan.y.setValue(gesture.dy);
+      },
+      onPanResponderRelease: () => {
+        pan.flattenOffset();
+      },
+    }),
+  )[0];
+
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: 'white',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
       <Animated.View
-        style={{
-          width: 100,
-          height: 100,
-          opacity,
-          borderRadius: 100 / 2,
-          backgroundColor: 'red',
-        }}
+        style={[
+          {
+            width: 100,
+            height: 100,
+            transform: [
+              {
+                translateX: pan.x,
+              },
+              {
+                translateY: pan.y,
+              },
+            ],
+            borderRadius: 100 / 2,
+            backgroundColor: 'red',
+          },
+          // pan.getLayout(),
+        ]}
+        {...panResponder.panHandlers}
       />
-      <TouchableOpacity onPress={fadeIn}>
-        <Text>Press to fadeIn</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={fadeOut}>
-        <Text>Press to fadeOut</Text>
-      </TouchableOpacity>
     </View>
   );
 }
