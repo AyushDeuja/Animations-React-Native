@@ -63,10 +63,10 @@ const Maps = () => {
     const coordinates = e.nativeEvent.coordinate;
     console.log(coordinates);
     if (isChoosingSource) {
-      setSource(coordinate);
+      setSource(coordinates);
       setIsChoosingSource(false);
     } else if (isChoosingDestination) {
-      setDestination(coordinate);
+      setDestination(coordinates);
       setIsChoosingDestination(false);
     }
   };
@@ -85,17 +85,24 @@ const Maps = () => {
         showsUserLocation={true}
         onPress={handleMapPress}
       >
-        <Marker
-          coordinate={{
-            latitude: 37.7885,
-            longitude: -122.4324,
-            //@ts-ignore
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          }}
-          title={'Testing'}
-          onPress={data => console.log(data.nativeEvent.coordinate)}
-        />
+        {location && (
+          <Marker
+            coordinate={location}
+            title={'Testing'}
+            onPress={data => console.log(data.nativeEvent.coordinate)}
+          />
+        )}
+
+        {source && (
+          <Marker coordinate={source} title="Source" pinColor={'green'} />
+        )}
+        {destination && (
+          <Marker
+            coordinate={destination}
+            title="Destination"
+            pinColor={'blue'}
+          />
+        )}
       </MapView>
       <View style={styles.buttonContainer}>
         <View style={styles.buttonGroup}>
