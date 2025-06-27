@@ -61,15 +61,33 @@ const Maps = () => {
   };
 
   const showCoordinates = () => {
-    console.log(source, destination);
-    const distance =
-      getDistance(
-        // @ts-ignore
-        { latitude: source?.latitude, longitude: source?.longitude },
-        // @ts-ignore
-        { latitude: destination?.latitude, longitude: destination?.longitude },
-      ) / 1000; // distance in kilometers
-    console.log(distance);
+    if (source && destination) {
+      const distance =
+        getDistance(
+          // @ts-ignore
+          { latitude: source?.latitude, longitude: source?.longitude },
+          {
+            // @ts-ignore
+            latitude: destination?.latitude,
+            // @ts-ignore
+            longitude: destination?.longitude,
+          },
+        ) / 1000; // distance in kilometers
+      Alert.alert(
+        'Coordinates and Distance',
+        `Source: \nLatitude: ${source.latitude}, Longitude: ${
+          source.longitude
+        }\n\n 
+Destination: \nLatitude: ${destination.latitude}, Longitude: ${
+          destination.longitude
+        }\n\nDistance: ${distance.toFixed(2)} km`,
+      );
+    } else {
+      Alert.alert(
+        'Error',
+        'Please select both source and destination to calculate distance.',
+      );
+    }
   };
 
   const handleMapPress = (e: any) => {
@@ -107,13 +125,27 @@ const Maps = () => {
         )}
 
         {source && (
-          <Marker coordinate={source} title="Source" pinColor={'green'} />
+          <Marker
+            coordinate={source}
+            title="Source"
+            pinColor={'green'}
+            draggable={true}
+            onDragEnd={e => {
+              // @ts-ignore
+              setSource(e.nativeEvent.coordinate);
+            }}
+          />
         )}
         {destination && (
           <Marker
             coordinate={destination}
             title="Destination"
             pinColor={'blue'}
+            draggable={true}
+            onDragEnd={e => {
+              // @ts-ignore
+              setDestination(e.nativeEvent.coordinate);
+            }}
           />
         )}
         {source && destination && (
@@ -126,18 +158,32 @@ const Maps = () => {
       </MapView>
       <View style={styles.buttonContainer}>
         <View style={styles.buttonGroup}>
-          <Button
-            title={isChoosingSource ? 'Please Choose Source' : 'Choose Source'}
-            onPress={() => setIsChoosingSource(true)}
-          />
-          <Button
-            title={
-              isChoosingDestination
-                ? 'Please Choose Destination'
-                : 'Choose Destination'
-            }
-            onPress={() => setIsChoosingDestination(true)}
-          />
+          {source ? (
+            <Button title="Remove Source" onPress={() => setSource(null)} />
+          ) : (
+            <Button
+              title={
+                isChoosingSource ? 'Please Choose Source' : 'Choose Source'
+              }
+              onPress={() => setIsChoosingSource(true)}
+            />
+          )}
+
+          {destination ? (
+            <Button
+              title="Remove Destination"
+              onPress={() => setDestination(null)}
+            />
+          ) : (
+            <Button
+              title={
+                isChoosingDestination
+                  ? 'Please Choose Destination'
+                  : 'Choose Destination'
+              }
+              onPress={() => setIsChoosingDestination(true)}
+            />
+          )}
         </View>
         <Button title="Show Coordinates" onPress={showCoordinates} />
       </View>
