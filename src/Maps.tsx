@@ -8,8 +8,9 @@ import {
   Button,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import { getDistance } from 'geolib';
 
 const Maps = () => {
   const [location, setLocation] = useState(null);
@@ -59,6 +60,18 @@ const Maps = () => {
     }
   };
 
+  const showCoordinates = () => {
+    console.log(source, destination);
+    const distance =
+      getDistance(
+        // @ts-ignore
+        { latitude: source?.latitude, longitude: source?.longitude },
+        // @ts-ignore
+        { latitude: destination?.latitude, longitude: destination?.longitude },
+      ) / 1000; // distance in kilometers
+    console.log(distance);
+  };
+
   const handleMapPress = (e: any) => {
     const coordinates = e.nativeEvent.coordinate;
     console.log(coordinates);
@@ -103,6 +116,13 @@ const Maps = () => {
             pinColor={'blue'}
           />
         )}
+        {source && destination && (
+          <Polyline
+            coordinates={[source, destination]}
+            strokeColor="red"
+            strokeWidth={2}
+          />
+        )}
       </MapView>
       <View style={styles.buttonContainer}>
         <View style={styles.buttonGroup}>
@@ -119,7 +139,7 @@ const Maps = () => {
             onPress={() => setIsChoosingDestination(true)}
           />
         </View>
-        <Button title="Show Coordinates" />
+        <Button title="Show Coordinates" onPress={showCoordinates} />
       </View>
     </View>
   );
