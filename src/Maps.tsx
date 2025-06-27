@@ -5,6 +5,7 @@ import {
   Platform,
   PermissionsAndroid,
   Alert,
+  Button,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
@@ -12,6 +13,10 @@ import Geolocation from '@react-native-community/geolocation';
 
 const Maps = () => {
   const [location, setLocation] = useState(null);
+  const [source, setSource] = useState(null);
+  const [destination, setDestination] = useState(null);
+  const [isChoosingSource, setIsChoosingSource] = useState(false);
+  const [isChoosingDestination, setIsChoosingDestination] = useState(false);
 
   const defaultLocation = {
     latitude: 37.78825,
@@ -54,6 +59,18 @@ const Maps = () => {
     }
   };
 
+  const handleMapPress = (e: any) => {
+    const coordinates = e.nativeEvent.coordinate;
+    console.log(coordinates);
+    if (isChoosingSource) {
+      setSource(coordinate);
+      setIsChoosingSource(false);
+    } else if (isChoosingDestination) {
+      setDestination(coordinate);
+      setIsChoosingDestination(false);
+    }
+  };
+
   useEffect(() => {
     requestLocationPermission();
   }, []);
@@ -65,8 +82,8 @@ const Maps = () => {
         style={styles.map}
         // @ts-ignore
         region={location}
-        onRegionChangeComplete={data => console.log(data)}
         showsUserLocation={true}
+        onPress={handleMapPress}
       >
         <Marker
           coordinate={{
@@ -80,6 +97,23 @@ const Maps = () => {
           onPress={data => console.log(data.nativeEvent.coordinate)}
         />
       </MapView>
+      <View style={styles.buttonContainer}>
+        <View style={styles.buttonGroup}>
+          <Button
+            title={isChoosingSource ? 'Please Choose Source' : 'Choose Source'}
+            onPress={() => setIsChoosingSource(true)}
+          />
+          <Button
+            title={
+              isChoosingDestination
+                ? 'Please Choose Destination'
+                : 'Choose Destination'
+            }
+            onPress={() => setIsChoosingDestination(true)}
+          />
+        </View>
+        <Button title="Show Coordinates" />
+      </View>
     </View>
   );
 };
@@ -92,6 +126,17 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
 });
 
