@@ -8,35 +8,39 @@ import {
   Button,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, {
+  Marker,
+  Polyline,
+  MapPressEvent,
+  Region,
+  LatLng,
+} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import { getDistance } from 'geolib';
 
 const Maps = () => {
-  const [location, setLocation] = useState(null);
-  const [source, setSource] = useState(null);
-  const [destination, setDestination] = useState(null);
+  const [location, setLocation] = useState<Region | null>(null);
+  const [source, setSource] = useState<LatLng | null>(null);
+  const [destination, setDestination] = useState<LatLng | null>(null);
   const [isChoosingSource, setIsChoosingSource] = useState(false);
   const [isChoosingDestination, setIsChoosingDestination] = useState(false);
 
-  const defaultLocation = {
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  };
-
   const getUserCurrentLocation = () => {
-    Geolocation.getCurrentPosition(position => {
-      console.log(position);
-      setLocation({
-        //@ts-ignore
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      });
-    });
+    Geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        setLocation({
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
+      },
+      error => {
+        console.warn('Location error:', error.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    );
   };
 
   const requestLocationPermission = async () => {
@@ -46,7 +50,6 @@ const Maps = () => {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Location permission granted');
           getUserCurrentLocation();
         } else {
           Alert.alert(
@@ -55,30 +58,21 @@ const Maps = () => {
           );
         }
       } catch (error) {
-        console.warn('Location permission error: ', error);
+        console.warn('Permission error:', error);
       }
+    } else {
+      getUserCurrentLocation(); // iOS auto permission handling
     }
   };
 
   const showCoordinates = () => {
     if (source && destination) {
-      const distance =
-        getDistance(
-          // @ts-ignore
-          { latitude: source?.latitude, longitude: source?.longitude },
-          {
-            // @ts-ignore
-            latitude: destination?.latitude,
-            // @ts-ignore
-            longitude: destination?.longitude,
-          },
-        ) / 1000; // distance in kilometers
+      const distance = getDistance(source, destination) / 1000; // in km
       Alert.alert(
         'Coordinates and Distance',
-        `Source: \nLatitude: ${source.latitude}, Longitude: ${
+        `Source:\nLat: ${source.latitude}, Lon: ${
           source.longitude
-        }\n\n 
-Destination: \nLatitude: ${destination.latitude}, Longitude: ${
+        }\n\nDestination:\nLat: ${destination.latitude}, Lon: ${
           destination.longitude
         }\n\nDistance: ${distance.toFixed(2)} km`,
       );
@@ -90,9 +84,8 @@ Destination: \nLatitude: ${destination.latitude}, Longitude: ${
     }
   };
 
-  const handleMapPress = (e: any) => {
+  const handleMapPress = (e: MapPressEvent) => {
     const coordinates = e.nativeEvent.coordinate;
-    console.log(coordinates);
     if (isChoosingSource) {
       setSource(coordinates);
       setIsChoosingSource(false);
@@ -111,41 +104,29 @@ Destination: \nLatitude: ${destination.latitude}, Longitude: ${
       <Text>Maps</Text>
       <MapView
         style={styles.map}
-        // @ts-ignore
-        region={location}
-        showsUserLocation={true}
+        region={location || undefined}
+        showsUserLocation
         onPress={handleMapPress}
       >
         {location && (
-          <Marker
-            coordinate={location}
-            title={'Testing'}
-            onPress={data => console.log(data.nativeEvent.coordinate)}
-          />
+          <Marker coordinate={location} title={'Current Location'} />
         )}
-
         {source && (
           <Marker
             coordinate={source}
             title="Source"
-            pinColor={'green'}
-            draggable={true}
-            onDragEnd={e => {
-              // @ts-ignore
-              setSource(e.nativeEvent.coordinate);
-            }}
+            pinColor="green"
+            draggable
+            onDragEnd={e => setSource(e.nativeEvent.coordinate)}
           />
         )}
         {destination && (
           <Marker
             coordinate={destination}
             title="Destination"
-            pinColor={'blue'}
-            draggable={true}
-            onDragEnd={e => {
-              // @ts-ignore
-              setDestination(e.nativeEvent.coordinate);
-            }}
+            pinColor="blue"
+            draggable
+            onDragEnd={e => setDestination(e.nativeEvent.coordinate)}
           />
         )}
         {source && destination && (
@@ -156,6 +137,7 @@ Destination: \nLatitude: ${destination.latitude}, Longitude: ${
           />
         )}
       </MapView>
+
       <View style={styles.buttonContainer}>
         <View style={styles.buttonGroup}>
           {source ? (
