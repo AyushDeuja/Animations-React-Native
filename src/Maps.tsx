@@ -6,11 +6,33 @@ import {
   PermissionsAndroid,
   Alert,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 
 const Maps = () => {
+  const [location, setLocation] = useState(null);
+
+  const defaultLocation = {
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  };
+
+  const getUserCurrentLocation = () => {
+    Geolocation.getCurrentPosition(position => {
+      console.log(position);
+      setLocation({
+        //@ts-ignore
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    });
+  };
+
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
       try {
@@ -19,6 +41,7 @@ const Maps = () => {
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           console.log('Location permission granted');
+          getUserCurrentLocation();
         } else {
           Alert.alert(
             'Permission Denied',
@@ -31,18 +54,19 @@ const Maps = () => {
     }
   };
 
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text>Maps</Text>
       <MapView
         style={styles.map}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
+        // @ts-ignore
+        region={location}
         onRegionChangeComplete={data => console.log(data)}
+        showsUserLocation={true}
       >
         <Marker
           coordinate={{
