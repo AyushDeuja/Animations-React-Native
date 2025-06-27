@@ -1,8 +1,36 @@
-import { View, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  PermissionsAndroid,
+  Alert,
+} from 'react-native';
 import React from 'react';
 import MapView, { Marker } from 'react-native-maps';
+import Geolocation from '@react-native-community/geolocation';
 
 const Maps = () => {
+  const requestLocationPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Location permission granted');
+        } else {
+          Alert.alert(
+            'Permission Denied',
+            'Location permission is required to access your location.',
+          );
+        }
+      } catch (error) {
+        console.warn('Location permission error: ', error);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text>Maps</Text>
